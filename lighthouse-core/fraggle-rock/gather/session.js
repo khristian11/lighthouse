@@ -25,11 +25,8 @@ class ProtocolSession {
     this._callbackMap = new WeakMap();
   }
 
-  sessionId() {
-    return this._targetInfo && this._targetInfo.type === 'iframe' ?
-      // TODO: use this._session.id() for real session id.
-      this._targetInfo.targetId :
-      undefined;
+  id() {
+    return this._cdpSession.id();
   }
 
   /** @param {LH.Crdp.Target.TargetInfo} targetInfo */
@@ -91,7 +88,7 @@ class ProtocolSession {
     const listener = (method, event) => callback({
       method,
       params: event,
-      sessionId: this.sessionId(),
+      sessionId: this.id(),
     });
     this._callbackMap.set(callback, listener);
     this._cdpSession.on('*', /** @type {*} */ (listener));

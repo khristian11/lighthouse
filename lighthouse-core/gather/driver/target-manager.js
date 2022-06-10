@@ -13,7 +13,7 @@
 const log = require('lighthouse-logger');
 const ProtocolSession = require('../../fraggle-rock/gather/session.js');
 
-/** @typedef {{target: LH.Crdp.Target.TargetInfo, session: LH.Gatherer.FRProtocolSession}} TargetWithSession */
+/** @typedef {{target: LH.Crdp.Target.TargetInfo, session: ProtocolSession}} TargetWithSession */
 
 class TargetManager {
   /** @param {LH.Puppeteer.CDPSession} cdpSession */
@@ -29,20 +29,47 @@ class TargetManager {
     /** @type {Map<string, TargetWithSession>} */
     this._targetIdToTargets = new Map();
 
-    /** @param {LH.Crdp.Page.FrameNavigatedEvent} event */
-    this._onFrameNavigated = async event => {
-      // Child frames are handled in `_onSessionAttached`.
-      if (event.frame.parentId) return;
+    // TODO: network.enable automatically
+    // keep list of sessions
+    // remove sessions when detached
+    // listen to events on list of sessions and re-emit from a firehose/flattened emitter
+    // or, listen on connection and filter to known sessions
+    // networkMonitor just listen to firehose
+    // also update target info on Target.targetInfoChanged
+    // future TODO: targets/sessions already attached when started? ("We prob need to do target.discovertargets or something")
 
-      // It's not entirely clear when this is necessary, but when the page switches processes on
-      // navigating from about:blank to the `requestedUrl`, resetting `setAutoAttach` has been
-      // necessary in the past.
-      await this._rootCdpSession.send('Target.setAutoAttach', {
-        autoAttach: true,
-        flatten: true,
-        waitForDebuggerOnStart: true,
-      });
-    };
+    this._onFrameNavigated = this._onFrameNavigated.bind(this);
+  }
+
+  /**
+   * @param {LH.Crdp.Page.FrameNavigatedEvent} frameNavigatedEvent
+   */
+  async _onFrameNavigated(frameNavigatedEvent) {
+    // Child frames are handled in `_onSessionAttached`.
+    if (frameNavigatedEvent.frame.parentId) return;
+
+    // It's not entirely clear when this is necessary, but when the page switches processes on
+    // navigating from about:blank to the `requestedUrl`, resetting `setAutoAttach` has been
+    // necessary in the past.
+    await this._rootCdpSession.send('Target.setAutoAttach', {
+      autoAttach: true,
+      flatten: true,
+      waitForDebuggerOnStart: true,
+    });
+  }
+
+  /**
+   * Returns the root session.
+   * @return {LH.Gatherer.FRProtocolSession}
+   */
+  rootSession() {
+    const rootSessionId = this._rootCdpSession.id();
+
+    for (const {session} of this._targetIdToTargets.values()) {
+      if (session.id() === rootSessionId) return session;
+    }
+
+    throw new Error('root session not found');
   }
 
   /**
