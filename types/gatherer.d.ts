@@ -28,8 +28,6 @@ declare module Gatherer {
     setNextProtocolTimeout(ms: number): void;
     on<TEvent extends keyof LH.CrdpEvents>(event: TEvent, callback: (...args: LH.CrdpEvents[TEvent]) => void): void;
     once<TEvent extends keyof LH.CrdpEvents>(event: TEvent, callback: (...args: LH.CrdpEvents[TEvent]) => void): void;
-    addProtocolMessageListener(callback: (payload: Protocol.RawEventMessage) => void): void
-    removeProtocolMessageListener(callback: (payload: Protocol.RawEventMessage) => void): void
     off<TEvent extends keyof LH.CrdpEvents>(event: TEvent, callback: (...args: LH.CrdpEvents[TEvent]) => void): void;
     sendCommand<TMethod extends keyof LH.CrdpCommands>(method: TMethod, ...params: LH.CrdpCommands[TMethod]['paramsType']): Promise<LH.CrdpCommands[TMethod]['returnType']>;
     dispose(): Promise<void>;

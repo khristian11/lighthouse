@@ -89,7 +89,10 @@ async function gotoURL(driver, requestor, options) {
   log.time(status);
 
   const session = driver.defaultSession;
-  const networkMonitor = new NetworkMonitor(driver.defaultSession);
+  /** @type {import('./target-manager.js')|import('../driver.js')} */
+  // @ts-expect-error
+  const targetManagerOrLegacyDriver = driver.targetManager ?? driver;
+  const networkMonitor = new NetworkMonitor(targetManagerOrLegacyDriver);
 
   // Enable the events and network monitor needed to track navigation progress.
   await networkMonitor.enable();

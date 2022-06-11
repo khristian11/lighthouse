@@ -89,7 +89,10 @@ class FullPageScreenshot extends FRGatherer {
     const height = Math.min(fullHeight, maxTextureSize);
 
     // Setup network monitor before we change the viewport.
-    const networkMonitor = new NetworkMonitor(session);
+    /** @type {import('../driver/target-manager.js')|import('../driver.js')} */
+    // @ts-expect-error
+    const targetManagerOrLegacyDriver = context.driver.targetManager ?? context.driver;
+    const networkMonitor = new NetworkMonitor(targetManagerOrLegacyDriver);
     const waitForNetworkIdleResult = waitForNetworkIdle(session, networkMonitor, {
       pretendDCLAlreadyFired: true,
       networkQuietThresholdMs: 1000,

@@ -24,8 +24,6 @@ const throwingSession = {
   on: throwNotConnectedFn,
   once: throwNotConnectedFn,
   off: throwNotConnectedFn,
-  addProtocolMessageListener: throwNotConnectedFn,
-  removeProtocolMessageListener: throwNotConnectedFn,
   sendCommand: throwNotConnectedFn,
   dispose: throwNotConnectedFn,
 };
@@ -76,7 +74,7 @@ class Driver {
     log.time(status);
     const cdpSession = await this._page.target().createCDPSession();
     this._targetManager = new TargetManager(cdpSession);
-    this._targetManager.enable();
+    await this._targetManager.enable();
     this.defaultSession = this._targetManager.rootSession();
     this._executionContext = new ExecutionContext(this.defaultSession);
     this._fetcher = new Fetcher(this.defaultSession);
